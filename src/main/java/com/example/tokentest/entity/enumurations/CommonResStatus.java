@@ -11,7 +11,8 @@ public enum CommonResStatus {
     DUPLICATE_USERNAME("1006", "user is duplicate"),
     INVALID_FORM_LOGIN("1007", "invalid form data"),
     FAILED_LOGIN("1008", "failed login"),
-    UNAUTHORIZED("1009", "unauthorized access");
+    UNAUTHORIZED("1009", "unauthorized access"),
+    NOT_FOUND_USERNAME("1010", "username not found");
 
     private final String code;
     private final String desc;

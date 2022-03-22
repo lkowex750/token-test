@@ -3,6 +3,7 @@ package com.example.tokentest.implement;
 import com.example.tokentest.dto.ResponseBodyDTO;
 import com.example.tokentest.entity.enumurations.CommonResStatus;
 import com.example.tokentest.entity.master.repo.UserRepository;
+import com.example.tokentest.security.AccessTokenAuthenticationToken;
 import com.example.tokentest.security.jwt.JwtProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +30,7 @@ public class CommonServiceImpl {
 
     @Autowired
     JwtProvider jwtProvider;
+
 
     ModelMapper modelMapper = new ModelMapper();
 
@@ -67,6 +69,10 @@ public class CommonServiceImpl {
 
     public ResponseBodyDTO setResponse(ResponseBodyDTO res, CommonResStatus status) {
         return setResponse(res, status, status.getDesc());
+    }
+
+    public AccessTokenAuthenticationToken getUserData() {
+        return new AccessTokenAuthenticationToken();
     }
 
 }

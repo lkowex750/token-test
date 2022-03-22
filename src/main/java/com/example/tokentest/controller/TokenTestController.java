@@ -3,6 +3,7 @@ package com.example.tokentest.controller;
 import com.example.tokentest.dto.ResponseBodyDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
+import com.example.tokentest.dto.tokenMangementDTO.user.RequestUpdateUserDTO;
 import com.example.tokentest.implement.CommonServiceImpl;
 import com.example.tokentest.interfaces.TokenManagementService;
 import org.slf4j.Logger;
@@ -31,9 +32,16 @@ public class TokenTestController extends CommonServiceImpl {
         return setResponse(res);
     }
 
+    @PostMapping(value = "/update-user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String updateUser(@RequestBody RequestUpdateUserDTO dto) {
+        ResponseBodyDTO res = tokenManagementService.updateUser(dto, getUserData());
+        return setResponse(res);
+    }
+
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     public String loginUser(@RequestBody RequestLoginUser dto) {
         logger.info(dto.getUsername() + dto.getPassword());
+
         ResponseBodyDTO res = tokenManagementService.login(dto);
         return setResponse(res);
     }

@@ -5,9 +5,11 @@ import com.example.tokentest.dto.ResponseJwt;
 import com.example.tokentest.dto.tokenMangementDTO.ResponseUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
+import com.example.tokentest.dto.tokenMangementDTO.user.RequestUpdateUserDTO;
 import com.example.tokentest.entity.enumurations.CommonResStatus;
 import com.example.tokentest.entity.master.user.User;
 import com.example.tokentest.interfaces.TokenManagementService;
+import com.example.tokentest.security.AccessTokenAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,10 +84,38 @@ public class TokenManagementImpl extends CommonServiceImpl implements TokenManag
         return setResponse(res, CommonResStatus.SUCCESS);
     }
 
+    @Override
+    public ResponseBodyDTO updateUser(RequestUpdateUserDTO dto, AccessTokenAuthenticationToken token) {
+        ResponseBodyDTO res = new ResponseBodyDTO();
+
+        if (isNullOrEmpty(dto.getEmail())) {
+            return setResponse(res, CommonResStatus.MISSING_EMAIL);
+        } else if (isNullOrEmpty(dto.getPassword())) {
+            return setResponse(res, CommonResStatus.MISSING_PASSWORD);
+        } else if (isNullOrEmpty(dto.getNameEN()) || isNullOrEmpty(dto.getNameTH())) {
+            return setResponse(res, CommonResStatus.MISSING_NAME);
+        } else if (isNullOrEmpty(dto.getLastnameEN()) || isNullOrEmpty(dto.getLastnameTH())) {
+            return setResponse(res, CommonResStatus.MISSING_LASTNAME);
+        } else if (isNullOrEmpty(dto.getPhoneNO())) {
+            return setResponse(res, CommonResStatus.MISSING_PHONE);
+        }
+
+        //String username, String password, String nameTH, String lastnameTH, String nameEN, String lastnameEN, String email, String phoneNO, String date
+        User userInfo = userRepository.findById(token.getUsername()).get();
+        String base64Password = new BCryptPasswordEncoder().encode(dto.getPassword());
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        User newUser = new User(userInfo.getUsername(), base64Password, dto.getNameTH(), dto.getLastnameTH(), dto.getNameEN(), dto.getLastnameEN(), dto.getEmail(), dto.getPhoneNO(), date);
+        userRepository.saveAndFlush(newUser);
+
+        return setResponse(res, CommonResStatus.SUCCESS);
+
+    }
+
     private ResponseUserDTO convertEntityToUserDTO(User user) {
         return modelMapper.map(user, ResponseUserDTO.class);
 
     }
+
 
     private boolean isNullOrEmpty(String data) {
         return data.isEmpty() || data.isBlank() || data.contains(" ");
