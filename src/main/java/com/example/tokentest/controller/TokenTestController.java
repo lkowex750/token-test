@@ -1,6 +1,7 @@
 package com.example.tokentest.controller;
 
 import com.example.tokentest.dto.ResponseBodyDTO;
+import com.example.tokentest.dto.tokenMangementDTO.RequestRefreshTokenDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestUpdateUserDTO;
@@ -43,6 +44,12 @@ public class TokenTestController extends CommonServiceImpl {
         logger.info(dto.getUsername() + dto.getPassword());
 
         ResponseBodyDTO res = tokenManagementService.login(dto);
+        return setResponse(res);
+    }
+
+    @PostMapping(value = "/auth/refresh-token", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String refreshToken(@RequestBody RequestRefreshTokenDTO dto) {
+        ResponseBodyDTO res = tokenManagementService.refreshToken(dto);
         return setResponse(res);
     }
 }

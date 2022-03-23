@@ -2,6 +2,7 @@ package com.example.tokentest.implement;
 
 import com.example.tokentest.dto.ResponseBodyDTO;
 import com.example.tokentest.dto.ResponseJwt;
+import com.example.tokentest.dto.tokenMangementDTO.RequestRefreshTokenDTO;
 import com.example.tokentest.dto.tokenMangementDTO.ResponseUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
@@ -12,9 +13,11 @@ import com.example.tokentest.interfaces.TokenManagementService;
 import com.example.tokentest.security.AccessTokenAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +30,9 @@ import java.util.stream.Collectors;
 public class TokenManagementImpl extends CommonServiceImpl implements TokenManagementService {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenManagementImpl.class);
+
+    @Autowired
+    private UserDetailServiceImpl userDetailService;
 
     @Override
     public ResponseBodyDTO getListUsers() {
@@ -78,8 +84,9 @@ public class TokenManagementImpl extends CommonServiceImpl implements TokenManag
         );
         logger.info(authentication.toString());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtProvider.generateJwtToken(authentication);
-        ResponseJwt responseJwt = new ResponseJwt(jwt);
+        String access_token = jwtProvider.generateJwtToken(authentication, "access_token");
+        String refresh_token = jwtProvider.generateJwtToken(authentication, "refresh_token");
+        ResponseJwt responseJwt = new ResponseJwt(access_token, refresh_token);
         res.setData(responseJwt);
         return setResponse(res, CommonResStatus.SUCCESS);
     }
@@ -109,6 +116,28 @@ public class TokenManagementImpl extends CommonServiceImpl implements TokenManag
 
         return setResponse(res, CommonResStatus.SUCCESS);
 
+    }
+
+    @Override
+    public ResponseBodyDTO refreshToken(RequestRefreshTokenDTO dto) {
+        ResponseBodyDTO res = new ResponseBodyDTO();
+
+        if (jwtProvider.validateJwtToken(dto.getRefreshToken())) {
+
+            String usernameRefresh = jwtProvider.getUserNameFromJwtToken(dto.getRefreshToken());
+            UserDetails userDetails = userDetailService.loadUserByUsername(usernameRefresh);
+            UsernamePasswordAuthenticationToken authentication
+                    = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String access_token = jwtProvider.generateJwtToken(authentication, "access_token");
+            ResponseJwt jwt = new ResponseJwt(access_token, dto.getRefreshToken());
+            res.setData(jwt);
+
+        } else {
+            return setResponse(res, CommonResStatus.INVALID_TOKEN);
+        }
+
+        return setResponse(res, CommonResStatus.SUCCESS);
     }
 
     private ResponseUserDTO convertEntityToUserDTO(User user) {

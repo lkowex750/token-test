@@ -20,11 +20,20 @@ public class JwtProvider {
     @Value("${token.app.jwtExpiration}")
     private int exp;
 
-    public String generateJwtToken(Authentication authentication) {
+
+    public String generateJwtToken(Authentication authentication, String token) {
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
-        return Jwts.builder().setSubject((userPrinciple.getUsername()))
-                .setIssuedAt(new Date()).setExpiration(new Date((new Date().getTime() + exp)))
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
+
+        if (token.equalsIgnoreCase("access_token")) {
+            return Jwts.builder().setSubject((userPrinciple.getUsername()))
+                    .setIssuedAt(new Date()).setExpiration(new Date((new Date().getTime() + exp)))
+                    .signWith(SignatureAlgorithm.HS512, secret).compact();
+        } else {
+            return Jwts.builder().setSubject((userPrinciple.getUsername()))
+                    .setIssuedAt(new Date()).setExpiration(new Date((new Date().getTime() + (exp * 30L))))
+                    .signWith(SignatureAlgorithm.HS512, secret).compact();
+        }
+
     }
 
     public String getUserNameFromJwtToken(String token) {
