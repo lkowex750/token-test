@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.util.Calendar;
 import java.util.Date;
 
 @Component
@@ -17,20 +18,24 @@ public class JwtProvider {
     @Value("${token.app.jwtSecret}")
     private String secret;
 
-    @Value("${token.app.jwtExpiration}")
-    private int exp;
-
-
     public String generateJwtToken(Authentication authentication, String token) {
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
 
+        Date date = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DATE,1);
+
         if (token.equalsIgnoreCase("access_token")) {
             return Jwts.builder().setSubject((userPrinciple.getUsername()))
-                    .setIssuedAt(new Date()).setExpiration(new Date((new Date().getTime() + exp)))
+                    .setIssuedAt(new Date()).setExpiration(calendar.getTime())
                     .signWith(SignatureAlgorithm.HS512, secret).compact();
         } else {
+            Calendar calendarRefresh = Calendar.getInstance();
+            calendarRefresh.setTime(date);
+            calendarRefresh.add(Calendar.MONTH,1);
             return Jwts.builder().setSubject((userPrinciple.getUsername()))
-                    .setIssuedAt(new Date()).setExpiration(new Date((new Date().getTime() + (exp * 30L))))
+                    .setIssuedAt(new Date()).setExpiration(calendarRefresh.getTime())
                     .signWith(SignatureAlgorithm.HS512, secret).compact();
         }
 
