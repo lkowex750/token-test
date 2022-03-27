@@ -83,6 +83,7 @@ public class TokenManagementImpl extends CommonServiceImpl implements TokenManag
                 )
         );
         logger.info(authentication.toString());
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String access_token = jwtProvider.generateJwtToken(authentication, "access_token");
         String refresh_token = jwtProvider.generateJwtToken(authentication, "refresh_token");

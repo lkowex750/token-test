@@ -1,12 +1,14 @@
 package com.example.tokentest.controller;
 
-import com.example.tokentest.dto.ResponseBodyDTO;
+import com.example.tokentest.dto.*;
+import com.example.tokentest.dto.keyTestDTO.*;
 import com.example.tokentest.dto.tokenMangementDTO.RequestRefreshTokenDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestUpdateUserDTO;
 import com.example.tokentest.implement.CommonServiceImpl;
 import com.example.tokentest.interfaces.TokenManagementService;
+import com.example.tokentest.security.RSA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +53,43 @@ public class TokenTestController extends CommonServiceImpl {
     public String refreshToken(@RequestBody RequestRefreshTokenDTO dto) {
         ResponseBodyDTO res = tokenManagementService.refreshToken(dto);
         return setResponse(res);
+    }
+
+    @GetMapping(value = "getKey", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseRSA getKey(){
+        RSA rsa = new RSA();
+        ResponseRSA res = new ResponseRSA(rsa.getPublicKey(),rsa.getPrivateKey());
+
+        return res;
+    }
+
+    @PostMapping(value = "test-key",produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseTestKey testKey(@RequestBody RequestBodyTestKey dto){
+        RSA rsa = new RSA();
+        rsa.initFromString(dto.getPublic_key(),dto.getPrivate_key());
+        String encryptMessage = "";
+        try {
+            encryptMessage = rsa.encrypt(dto.getMessage());
+
+        }catch (Exception e){logger.info(e.getMessage());}
+
+        ResponseTestKey res = new ResponseTestKey();
+        res.setEncryptedMessage(encryptMessage);
+
+        return res;
+    }
+
+    @PostMapping(value = "decrypted-message", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseDecryptMessage decryptMessage(@RequestBody RequestDecryptMessage dto){
+        RSA rsa = new RSA();
+        rsa.initFromString(dto.getPublic_key(),dto.getPrivate_key());
+        String decryptMessage = "";
+        try {
+            decryptMessage = rsa.decrypt(dto.getEncryptedMessage());
+        }catch (Exception e){logger.info(e.getMessage());}
+
+        ResponseDecryptMessage res = new ResponseDecryptMessage();
+        res.setMessage(decryptMessage);
+        return res;
     }
 }
