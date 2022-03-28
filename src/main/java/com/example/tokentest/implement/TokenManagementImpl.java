@@ -3,6 +3,7 @@ package com.example.tokentest.implement;
 import com.example.tokentest.dto.ResponseBodyDTO;
 import com.example.tokentest.dto.ResponseJwt;
 import com.example.tokentest.dto.tokenMangementDTO.RequestRefreshTokenDTO;
+import com.example.tokentest.dto.tokenMangementDTO.RequestSearchDTO;
 import com.example.tokentest.dto.tokenMangementDTO.ResponseUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
@@ -21,7 +22,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -138,6 +141,29 @@ public class TokenManagementImpl extends CommonServiceImpl implements TokenManag
             return setResponse(res, CommonResStatus.INVALID_TOKEN);
         }
 
+        return setResponse(res, CommonResStatus.SUCCESS);
+    }
+
+    @Override
+    public ResponseBodyDTO search(RequestSearchDTO dto) {
+        List<ResponseUserDTO> list = userRepository.findAll((root,query,cb) ->{
+            List<Predicate> predicates = new ArrayList<>();
+            String textLike = "";
+            if(!isNullOrEmpty(dto.getUsername())){
+                textLike = "%"+dto.getUsername().trim()+"%";
+                predicates.add(cb.like(root.get("username"),textLike));
+            }
+            if(!isNullOrEmpty(dto.getEmail())){
+                predicates.add(cb.equal(root.get("email"),dto.getEmail()));
+            }
+            if(!isNullOrEmpty(dto.getPhoneNO())){
+                predicates.add(cb.equal(root.get("phoneNO"),dto.getPhoneNO()));
+            }
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        }).stream().map(this::convertEntityToUserDTO).collect(Collectors.toList());
+
+        ResponseBodyDTO res = new ResponseBodyDTO();
+        res.setData(list);
         return setResponse(res, CommonResStatus.SUCCESS);
     }
 

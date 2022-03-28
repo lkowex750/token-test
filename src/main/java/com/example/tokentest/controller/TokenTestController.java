@@ -3,6 +3,7 @@ package com.example.tokentest.controller;
 import com.example.tokentest.dto.*;
 import com.example.tokentest.dto.keyTestDTO.*;
 import com.example.tokentest.dto.tokenMangementDTO.RequestRefreshTokenDTO;
+import com.example.tokentest.dto.tokenMangementDTO.RequestSearchDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestAddUserDTO;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestLoginUser;
 import com.example.tokentest.dto.tokenMangementDTO.user.RequestUpdateUserDTO;
@@ -66,7 +67,7 @@ public class TokenTestController extends CommonServiceImpl {
     @PostMapping(value = "test-key",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseTestKey testKey(@RequestBody RequestBodyTestKey dto){
         RSA rsa = new RSA();
-        rsa.initFromString(dto.getPublic_key(),dto.getPrivate_key());
+        rsa.setKeyPair(dto.getPublic_key(),dto.getPrivate_key());
         String encryptMessage = "";
         try {
             encryptMessage = rsa.encrypt(dto.getMessage());
@@ -82,7 +83,7 @@ public class TokenTestController extends CommonServiceImpl {
     @PostMapping(value = "decrypted-message", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseDecryptMessage decryptMessage(@RequestBody RequestDecryptMessage dto){
         RSA rsa = new RSA();
-        rsa.initFromString(dto.getPublic_key(),dto.getPrivate_key());
+        rsa.setKeyPair(dto.getPublic_key(),dto.getPrivate_key());
         String decryptMessage = "";
         try {
             decryptMessage = rsa.decrypt(dto.getEncryptedMessage());
@@ -91,5 +92,11 @@ public class TokenTestController extends CommonServiceImpl {
         ResponseDecryptMessage res = new ResponseDecryptMessage();
         res.setMessage(decryptMessage);
         return res;
+    }
+
+    @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String searchUser(@RequestBody RequestSearchDTO dto){
+        ResponseBodyDTO res = tokenManagementService.search(dto);
+        return setResponse(res);
     }
 }
